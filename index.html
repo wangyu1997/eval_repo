@@ -155,9 +155,11 @@
             lineNumbers: true,
             lineWrapping: true,
             tabSize: 2,
-            scrollbarStyle: null,
             viewportMargin: Infinity,
-            placeholder: "请输入基准文本..."
+            placeholder: "请输入基准文本...",
+            readOnly: false,
+            inputStyle: "contenteditable",
+            autofocus: true
         });
 
         const expEditor = CodeMirror.fromTextArea(document.getElementById("exp_text"), {
@@ -166,10 +168,22 @@
             lineNumbers: true,
             lineWrapping: true,
             tabSize: 2,
-            scrollbarStyle: null,
             viewportMargin: Infinity,
-            placeholder: "请输入实验文本..."
+            placeholder: "请输入实验文本...",
+            readOnly: false,
+            inputStyle: "contenteditable",
+            autofocus: false
         });
+
+        // 设置编辑器的大小
+        baseEditor.setSize(null, "500px");
+        expEditor.setSize(null, "500px");
+
+        // 刷新编辑器以确保正确显示
+        setTimeout(() => {
+            baseEditor.refresh();
+            expEditor.refresh();
+        }, 100);
 
         function clearAll() {
             baseEditor.setValue("");
@@ -177,8 +191,8 @@
             document.getElementById('result_container').style.display = 'none';
         }
 
-        // 正则表达式模式
-        const pattern = /stdout (?<name>[^:]+): AUC=(?<auc>[\d.]+) UAUC=(?<uauc>[\d.]+) WUAUC=(?<wuauc>[\d.]+) .* InsNum=(?<insNum>[\d]+) .* (LOSS=(?<los>[\d.]+)|MAE=(?<mae>[\d.]+)) .*(ActualCTR=(?<actual_ctr>[\d.]+)|ActualWatch=(?<actual_watch>[\d.]+)) .*(PredictedCTR=(?<pred_ctr>[\d.]+)|PredWatch=(?<pred_watch>[\d.]+))/;
+        // 正则表达式模式 - 更新以匹配stdout格式
+        const pattern = /stdout\s+(?<name>[^:]+):\s+AUC=(?<auc>[\d.]+)\s+UAUC=(?<uauc>[\d.]+)\s+WUAUC=(?<wuauc>[\d.]+).*?InsNum=(?<insNum>[\d]+).*?(LOSS=(?<los>[\d.]+)|MAE=(?<mae>[\d.]+)).*?(ActualCTR=(?<actual_ctr>[\d.]+)|ActualWatch=(?<actual_watch>[\d.]+)).*?(PredictedCTR=(?<pred_ctr>[\d.]+)|PredWatch=(?<pred_watch>[\d.]+))/;
 
         function colorStr(str, color) {
             return `<span class="${color}">${str}</span>`;
@@ -186,16 +200,16 @@
 
         function diffPP(a, b, isLoss = false) {
             const diff = (b - a) * 100;
-            if (diff === 0) return `${diff.toFixed(2)}pp`;
+            if (diff === 0) return `${diff.toFixed(3)}pp`;
             
             if (isLoss) {
                 return diff > 0 ? 
-                    colorStr(`+${diff.toFixed(2)}pp`, 'red') : 
-                    colorStr(`${diff.toFixed(2)}pp`, 'green');
+                    colorStr(`+${diff.toFixed(3)}pp`, 'red') : 
+                    colorStr(`${diff.toFixed(3)}pp`, 'green');
             } else {
                 return diff > 0 ? 
-                    colorStr(`+${diff.toFixed(2)}pp`, 'green') : 
-                    colorStr(`${diff.toFixed(2)}pp`, 'red');
+                    colorStr(`+${diff.toFixed(3)}pp`, 'green') : 
+                    colorStr(`${diff.toFixed(3)}pp`, 'red');
             }
         }
 
@@ -208,7 +222,8 @@
                 if (!match) continue;
                 
                 const { groups } = match;
-                const name = groups.name.trim();
+                // 从stdout后面提取关键词，去掉auc_前缀
+                const name = groups.name.replace(/^auc_/, '').trim();
                 keywords.add(name);
             }
             
@@ -224,7 +239,8 @@
                 if (!match) continue;
                 
                 const { groups } = match;
-                const name = groups.name.trim();
+                // 从stdout后面提取关键词，去掉auc_前缀
+                const name = groups.name.replace(/^auc_/, '').trim();
                 const los = groups.los || groups.mae;
                 const actualCtr = groups.actual_ctr || groups.actual_watch;
                 const predCtr = groups.pred_ctr || groups.pred_watch;
@@ -259,7 +275,7 @@
             const baseMetrics = parseMetrics(baseText);
             const expMetrics = parseMetrics(expText);
             
-            let result = '=' + '='.repeat(118) + '\n';
+            let result = '';
             result += `${' '.repeat(20)}${' '.repeat(12)}AUC${' '.repeat(12)}UAUC${' '.repeat(12)}WUAUC${' '.repeat(8)}INS_NUM${' '.repeat(8)}LOSS${' '.repeat(10)}ACTUAL${' '.repeat(8)}PREDICT\n`;
             result += '-'.repeat(120) + '\n';
 
@@ -288,8 +304,6 @@
                          `LOSS=${base.loss.toFixed(4)}|${exp.loss.toFixed(4)}(${diffPP(base.loss, exp.loss, true)}) ` +
                          `pcoc=${pcoc}\n`;
             }
-
-            result += '=' + '='.repeat(118);
 
             document.getElementById('result').innerHTML = result;
             document.getElementById('result_container').style.display = 'block';
