@@ -430,15 +430,21 @@
 
                 const insNumDiff = exp.insNum - base.insNum;
                 const insNumDisplay = insNumDiff === 0 ? '0' : (insNumDiff > 0 ? colorStr(`+${insNumDiff}`, 'red') : colorStr(`${insNumDiff}`, 'green'));
-                const pcoc = (base.predCtr / base.actualCtr).toFixed(4) + '|' + 
-                            (exp.predCtr / base.actualCtr).toFixed(4);
+                
+                const basePcoc = base.predCtr / base.actualCtr;
+                const expPcoc = exp.predCtr / exp.actualCtr;
+                const pcocDiff = expPcoc - basePcoc;
+                const pcocDisplay = `${basePcoc.toFixed(4)}|${expPcoc.toFixed(4)}` + 
+                    (pcocDiff === 0 ? '(0)' : 
+                    pcocDiff > 0 ? colorStr(`(+${pcocDiff.toFixed(4)})`, 'red') : 
+                    colorStr(`(${pcocDiff.toFixed(4)})`, 'green'));
 
                 result += `${printLoss.padEnd(10)}  AUC=${base.auc.toFixed(4)}|${exp.auc.toFixed(4)}(${diffPP(base.auc, exp.auc)}) ` +
                          `UAUC=${base.uauc.toFixed(4)}|${exp.uauc.toFixed(4)}(${diffPP(base.uauc, exp.uauc)}) ` +
                          `WUAUC=${base.wuauc.toFixed(4)}|${exp.wuauc.toFixed(4)}(${diffPP(base.wuauc, exp.wuauc)}) ` +
                          `INS=${base.insNum}|${exp.insNum}(${insNumDisplay}) ` +
                          `LOSS=${base.loss.toFixed(4)}|${exp.loss.toFixed(4)}(${diffPP(base.loss, exp.loss, true)}) ` +
-                         `pcoc=${pcoc}\n`;
+                         `pcoc=${pcocDisplay}\n`;
             }
 
             document.getElementById('result').innerHTML = result;
