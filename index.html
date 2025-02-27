@@ -336,12 +336,12 @@
             
             if (isLoss) {
                 return diff > 0 ? 
-                    colorStr(`+${diff.toFixed(3)}pp`, 'red') : 
-                    colorStr(`${diff.toFixed(3)}pp`, 'green');
-            } else {
-                return diff > 0 ? 
                     colorStr(`+${diff.toFixed(3)}pp`, 'green') : 
                     colorStr(`${diff.toFixed(3)}pp`, 'red');
+            } else {
+                return diff > 0 ? 
+                    colorStr(`+${diff.toFixed(3)}pp`, 'red') : 
+                    colorStr(`${diff.toFixed(3)}pp`, 'green');
             }
         }
 
@@ -428,14 +428,15 @@
                     printLoss = 'ctr_' + key.slice(0, -4);
                 }
 
-                const insNumDiff = base.insNum !== exp.insNum ? 'Y' : 'N';
+                const insNumDiff = exp.insNum - base.insNum;
+                const insNumDisplay = insNumDiff === 0 ? '0' : (insNumDiff > 0 ? colorStr(`+${insNumDiff}`, 'red') : colorStr(`${insNumDiff}`, 'green'));
                 const pcoc = (base.predCtr / base.actualCtr).toFixed(4) + '|' + 
                             (exp.predCtr / base.actualCtr).toFixed(4);
 
                 result += `${printLoss.padEnd(10)}  AUC=${base.auc.toFixed(4)}|${exp.auc.toFixed(4)}(${diffPP(base.auc, exp.auc)}) ` +
                          `UAUC=${base.uauc.toFixed(4)}|${exp.uauc.toFixed(4)}(${diffPP(base.uauc, exp.uauc)}) ` +
                          `WUAUC=${base.wuauc.toFixed(4)}|${exp.wuauc.toFixed(4)}(${diffPP(base.wuauc, exp.wuauc)}) ` +
-                         `INS=${base.insNum}|${exp.insNum}(${insNumDiff}) ` +
+                         `INS=${base.insNum}|${exp.insNum}(${insNumDisplay}) ` +
                          `LOSS=${base.loss.toFixed(4)}|${exp.loss.toFixed(4)}(${diffPP(base.loss, exp.loss, true)}) ` +
                          `pcoc=${pcoc}\n`;
             }
