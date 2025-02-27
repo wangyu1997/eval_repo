@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-theme="dark">
+<html data-theme="light">
 <head>
     <title>指标比较工具</title>
     <meta charset="UTF-8">
@@ -266,7 +266,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/shell/shell.min.js"></script>
     <script>
-        let isDarkTheme = true;
+        let isDarkTheme = false;
 
         function toggleTheme() {
             isDarkTheme = !isDarkTheme;
@@ -280,7 +280,7 @@
 
         // 初始化CodeMirror编辑器
         const baseEditor = CodeMirror.fromTextArea(document.getElementById("base_text"), {
-            theme: "dracula",
+            theme: "solarized light",
             mode: "shell",
             lineNumbers: true,
             lineWrapping: true,
@@ -293,7 +293,7 @@
         });
 
         const expEditor = CodeMirror.fromTextArea(document.getElementById("exp_text"), {
-            theme: "dracula",
+            theme: "solarized light",
             mode: "shell",
             lineNumbers: true,
             lineWrapping: true,
@@ -408,8 +408,11 @@
             const expMetrics = parseMetrics(expText);
             
             let result = '';
-            result += `${' '.repeat(20)}${' '.repeat(12)}AUC${' '.repeat(12)}UAUC${' '.repeat(12)}WUAUC${' '.repeat(8)}INS_NUM${' '.repeat(8)}LOSS${' '.repeat(10)}ACTUAL${' '.repeat(8)}PREDICT\n`;
-            result += '-'.repeat(120) + '\n';
+            const header = `${' '.repeat(20)}${' '.repeat(12)}AUC${' '.repeat(12)}UAUC${' '.repeat(12)}WUAUC${' '.repeat(12)}INS_NUM${' '.repeat(8)}LOSS${' '.repeat(10)}ACTUAL${' '.repeat(8)}PREDICT\n`;
+            const separator = '-'.repeat(140) + '\n';
+            
+            result += header;
+            result += separator;
 
             for (const key of keywords) {
                 // 如果某个指标在base或exp中缺失，跳过该指标
@@ -433,6 +436,8 @@
 
                 result += `${printLoss.padStart(31)}  AUC=${base.auc.toFixed(4)}|${exp.auc.toFixed(4)}(${diffPP(base.auc, exp.auc)}) ` +
                          `UAUC=${base.uauc.toFixed(4)}|${exp.uauc.toFixed(4)}(${diffPP(base.uauc, exp.uauc)}) ` +
+                         `WUAUC=${base.wuauc.toFixed(4)}|${exp.wuauc.toFixed(4)}(${diffPP(base.wuauc, exp.wuauc)}) ` +
+                         `INS=${base.insNum}|${exp.insNum}(${insNumDiff}) ` +
                          `LOSS=${base.loss.toFixed(4)}|${exp.loss.toFixed(4)}(${diffPP(base.loss, exp.loss, true)}) ` +
                          `pcoc=${pcoc}\n`;
             }
