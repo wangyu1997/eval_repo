@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>指标比较工具</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .input-container {
+            flex: 1;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            resize: vertical;
+        }
+        .result {
+            background-color: white;
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            white-space: pre;
+            font-family: monospace;
+            overflow-x: auto;
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #666;
+        }
+        .red {
+            color: #ff0000;
+        }
+        .green {
+            color: #008000;
+        }
+        .blue {
+            color: #0000ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>指标比较工具</h1>
+    <div class="container">
+        <div class="input-container">
+            <div class="label">基准文本 (Base):</div>
+            <textarea id="base_text" placeholder="请输入基准文本..."></textarea>
+        </div>
+        <div class="input-container">
+            <div class="label">实验文本 (Experiment):</div>
+            <textarea id="exp_text" placeholder="请输入实验文本..."></textarea>
+        </div>
+    </div>
+    <button onclick="compareMetrics()">比较</button>
+    
+    <div id="result_container" style="display: none;">
+        <h2>比较结果:</h2>
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        // 关键词列表
+        const keywords = [
+            'p1s', 'ctr', 'conv', 'conv_seq', 'cvr_p_on_all', 'cvr_p_on_clk',
+            'cvr_n_on_all', 'cvr_n_on_noclk', 'conv_APP', 'conv_APP_ctr',
+            'conv_SITE_PAGE', 'conv_SITE_PAGE_ctr', 'conv_AD_KWAI_SERIAL_PROMOTION',
+            'conv_AD_KWAI_SERIAL_PROMOTION_ctr', 'conv_MINI_APP_CAMPAIGN_TYPE',
+            'conv_MINI_APP_CAMPAIGN_TYPE_ctr', 'conv_PHOTO', 'conv_PHOTO_ctr',
+            'conv_AD_WX_MINI_APP', 'conv_AD_WX_MINI_APP_ctr',
+            'conv_AD_KWAI_FICTION_PROMOTION', 'conv_AD_KWAI_FICTION_PROMOTION_ctr',
+            'conv_p98', 'conv_p80', 'conv_p90'
+        ];
+
+        // 正则表达式模式
+        const pattern = /auc_(?<name>[^: ]+) *: AUC=(?<auc>[\d.]+) UAUC=(?<uauc>[\d.]+) WUAUC=(?<wuauc>[\d.]+) .* InsNum=(?<insNum>[\d]+) .* (LOSS=(?<los>[\d.]+)|MAE=(?<mae>[\d.]+)) .*(ActualCTR=(?<actual_ctr>[\d.]+)|ActualWatch=(?<actual_watch>[\d.]+)) .*(PredictedCTR=(?<pred_ctr>[\d.]+)|PredWatch=(?<pred_watch>[\d.]+))/;
+
+        function colorStr(str, color) {
+            return `<span class="${color}">${str}</span>`;
+        }
+
+        function diffPP(a, b, isLoss = false) {
+            const diff = (b - a) * 100;
+            if (diff === 0) return `${diff.toFixed(2)}pp`;
+            
+            if (isLoss) {
+                return diff > 0 ? 
+                    colorStr(`+${diff.toFixed(2)}pp`, 'red') : 
+                    colorStr(`${diff.toFixed(2)}pp`, 'green');
+            } else {
+                return diff > 0 ? 
+                    colorStr(`+${diff.toFixed(2)}pp`, 'green') : 
+                    colorStr(`${diff.toFixed(2)}pp`, 'red');
+            }
+        }
+
+        function parseMetrics(text) {
+            const metrics = {};
+            const lines = text.trim().split('\n');
+            
+            for (const line of lines) {
+                const match = pattern.exec(line.trim());
+                if (!match) continue;
+                
+                const { groups } = match;
+                const name = groups.name.trim();
+                if (!keywords.includes(name)) continue;
+
+                const los = groups.los || groups.mae;
+                const actualCtr = groups.actual_ctr || groups.actual_watch;
+                const predCtr = groups.pred_ctr || groups.pred_watch;
+
+                metrics[name] = {
+                    auc: parseFloat(groups.auc),
+                    uauc: parseFloat(groups.uauc),
+                    wuauc: parseFloat(groups.wuauc),
+                    insNum: parseInt(groups.insNum),
+                    loss: parseFloat(los),
+                    actualCtr: parseFloat(actualCtr),
+                    predCtr: parseFloat(predCtr)
+                };
+            }
+            return metrics;
+        }
+
+        function compareMetrics() {
+            const baseText = document.getElementById('base_text').value;
+            const expText = document.getElementById('exp_text').value;
+
+            if (!baseText || !expText) {
+                alert('请输入基准文本和实验文本！');
+                return;
+            }
+
+            const baseMetrics = parseMetrics(baseText);
+            const expMetrics = parseMetrics(expText);
+            
+            let result = '=' + '='.repeat(118) + '\n';
+            result += `${' '.repeat(20)}${' '.repeat(12)}AUC${' '.repeat(12)}UAUC${' '.repeat(12)}WUAUC${' '.repeat(8)}INS_NUM${' '.repeat(8)}LOSS${' '.repeat(10)}ACTUAL${' '.repeat(8)}PREDICT\n`;
+            result += '-'.repeat(120) + '\n';
+
+            for (const key of Object.keys(baseMetrics).sort()) {
+                if (!expMetrics[key]) continue;
+
+                const base = baseMetrics[key];
+                const exp = expMetrics[key];
+
+                let printLoss = key;
+                if (key.endsWith('_ctr')) {
+                    printLoss = 'ctr_' + key.slice(0, -4);
+                }
+
+                if (key === 'conv_p98' || key === 'conv_APP') {
+                    result += '\n';
+                }
+
+                const insNumDiff = base.insNum !== exp.insNum ? 'Y' : 'N';
+                const pcoc = (base.predCtr / base.actualCtr).toFixed(4) + '|' + 
+                            (exp.predCtr / base.actualCtr).toFixed(4);
+
+                result += `${printLoss.padStart(31)}  AUC=${base.auc.toFixed(4)}|${exp.auc.toFixed(4)}(${diffPP(base.auc, exp.auc)}) ` +
+                         `UAUC=${base.uauc.toFixed(4)}|${exp.uauc.toFixed(4)}(${diffPP(base.uauc, exp.uauc)}) ` +
+                         `LOSS=${base.loss.toFixed(4)}|${exp.loss.toFixed(4)}(${diffPP(base.loss, exp.loss, true)}) ` +
+                         `pcoc=${pcoc}\n`;
+            }
+
+            result += '=' + '='.repeat(118);
+
+            document.getElementById('result').innerHTML = result;
+            document.getElementById('result_container').style.display = 'block';
+        }
+    </script>
+</body>
+</html> 
