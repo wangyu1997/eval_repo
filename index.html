@@ -3,13 +3,16 @@
 <head>
     <title>指标比较工具</title>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #2b2b2b;
+            color: #fff;
         }
         .container {
             display: flex;
@@ -19,24 +22,21 @@
         .input-container {
             flex: 1;
         }
-        textarea {
-            width: 100%;
+        .CodeMirror {
             height: 300px;
-            padding: 10px;
-            border: 1px solid #ccc;
             border-radius: 4px;
-            font-family: monospace;
-            resize: vertical;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
         }
         .result {
-            background-color: white;
+            background-color: #1e1e1e;
             padding: 20px;
             border-radius: 4px;
-            border: 1px solid #ccc;
+            border: 1px solid #3c3c3c;
             white-space: pre;
-            font-family: monospace;
+            font-family: 'Fira Code', 'Consolas', monospace;
             overflow-x: auto;
-            color: #333;
+            color: #d4d4d4;
         }
         button {
             background-color: #4CAF50;
@@ -46,26 +46,46 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #45a049;
         }
         h1, h2 {
-            color: #333;
+            color: #fff;
         }
         .label {
             margin-bottom: 5px;
             font-weight: bold;
-            color: #666;
+            color: #ccc;
         }
         .red {
-            color: #ff0000;
+            color: #ff6b6b;
         }
         .green {
-            color: #008000;
+            color: #69db7c;
         }
         .blue {
-            color: #0000ff;
+            color: #4dabf7;
+        }
+        .toolbar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .toolbar button {
+            font-size: 14px;
+            padding: 8px 15px;
+        }
+        .clear-button {
+            background-color: #e74c3c;
+        }
+        .clear-button:hover {
+            background-color: #c0392b;
+        }
+        #result_container {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -81,14 +101,48 @@
             <textarea id="exp_text" placeholder="请输入实验文本..."></textarea>
         </div>
     </div>
-    <button onclick="compareMetrics()">比较</button>
+    <div class="toolbar">
+        <button onclick="compareMetrics()">比较</button>
+        <button class="clear-button" onclick="clearAll()">清空</button>
+    </div>
     
     <div id="result_container" style="display: none;">
         <h2>比较结果:</h2>
         <div id="result" class="result"></div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/shell/shell.min.js"></script>
     <script>
+        // 初始化CodeMirror编辑器
+        const baseEditor = CodeMirror.fromTextArea(document.getElementById("base_text"), {
+            theme: "monokai",
+            mode: "shell",
+            lineNumbers: true,
+            lineWrapping: true,
+            tabSize: 2,
+            scrollbarStyle: null,
+            viewportMargin: Infinity,
+            placeholder: "请输入基准文本..."
+        });
+
+        const expEditor = CodeMirror.fromTextArea(document.getElementById("exp_text"), {
+            theme: "monokai",
+            mode: "shell",
+            lineNumbers: true,
+            lineWrapping: true,
+            tabSize: 2,
+            scrollbarStyle: null,
+            viewportMargin: Infinity,
+            placeholder: "请输入实验文本..."
+        });
+
+        function clearAll() {
+            baseEditor.setValue("");
+            expEditor.setValue("");
+            document.getElementById('result_container').style.display = 'none';
+        }
+
         // 关键词列表
         const keywords = [
             'p1s', 'ctr', 'conv', 'conv_seq', 'cvr_p_on_all', 'cvr_p_on_clk',
@@ -153,8 +207,8 @@
         }
 
         function compareMetrics() {
-            const baseText = document.getElementById('base_text').value;
-            const expText = document.getElementById('exp_text').value;
+            const baseText = baseEditor.getValue();
+            const expText = expEditor.getValue();
 
             if (!baseText || !expText) {
                 alert('请输入基准文本和实验文本！');
