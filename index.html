@@ -177,20 +177,8 @@
             document.getElementById('result_container').style.display = 'none';
         }
 
-        // 关键词列表
-        const keywords = [
-            'p1s', 'ctr', 'conv', 'conv_seq', 'cvr_p_on_all', 'cvr_p_on_clk',
-            'cvr_n_on_all', 'cvr_n_on_noclk', 'conv_APP', 'conv_APP_ctr',
-            'conv_SITE_PAGE', 'conv_SITE_PAGE_ctr', 'conv_AD_KWAI_SERIAL_PROMOTION',
-            'conv_AD_KWAI_SERIAL_PROMOTION_ctr', 'conv_MINI_APP_CAMPAIGN_TYPE',
-            'conv_MINI_APP_CAMPAIGN_TYPE_ctr', 'conv_PHOTO', 'conv_PHOTO_ctr',
-            'conv_AD_WX_MINI_APP', 'conv_AD_WX_MINI_APP_ctr',
-            'conv_AD_KWAI_FICTION_PROMOTION', 'conv_AD_KWAI_FICTION_PROMOTION_ctr',
-            'conv_p98', 'conv_p80', 'conv_p90'
-        ];
-
         // 正则表达式模式
-        const pattern = /auc_(?<name>[^: ]+) *: AUC=(?<auc>[\d.]+) UAUC=(?<uauc>[\d.]+) WUAUC=(?<wuauc>[\d.]+) .* InsNum=(?<insNum>[\d]+) .* (LOSS=(?<los>[\d.]+)|MAE=(?<mae>[\d.]+)) .*(ActualCTR=(?<actual_ctr>[\d.]+)|ActualWatch=(?<actual_watch>[\d.]+)) .*(PredictedCTR=(?<pred_ctr>[\d.]+)|PredWatch=(?<pred_watch>[\d.]+))/;
+        const pattern = /stdout (?<name>[^:]+): AUC=(?<auc>[\d.]+) UAUC=(?<uauc>[\d.]+) WUAUC=(?<wuauc>[\d.]+) .* InsNum=(?<insNum>[\d]+) .* (LOSS=(?<los>[\d.]+)|MAE=(?<mae>[\d.]+)) .*(ActualCTR=(?<actual_ctr>[\d.]+)|ActualWatch=(?<actual_watch>[\d.]+)) .*(PredictedCTR=(?<pred_ctr>[\d.]+)|PredWatch=(?<pred_watch>[\d.]+))/;
 
         function colorStr(str, color) {
             return `<span class="${color}">${str}</span>`;
@@ -211,6 +199,22 @@
             }
         }
 
+        function extractKeywords(text) {
+            const keywords = new Set();
+            const lines = text.trim().split('\n');
+            
+            for (const line of lines) {
+                const match = pattern.exec(line.trim());
+                if (!match) continue;
+                
+                const { groups } = match;
+                const name = groups.name.trim();
+                keywords.add(name);
+            }
+            
+            return Array.from(keywords);
+        }
+
         function parseMetrics(text) {
             const metrics = {};
             const lines = text.trim().split('\n');
@@ -221,8 +225,6 @@
                 
                 const { groups } = match;
                 const name = groups.name.trim();
-                if (!keywords.includes(name)) continue;
-
                 const los = groups.los || groups.mae;
                 const actualCtr = groups.actual_ctr || groups.actual_watch;
                 const predCtr = groups.pred_ctr || groups.pred_watch;
@@ -249,6 +251,11 @@
                 return;
             }
 
+            // 从两个文本中提取所有的keywords
+            const baseKeywords = extractKeywords(baseText);
+            const expKeywords = extractKeywords(expText);
+            const keywords = Array.from(new Set([...baseKeywords, ...expKeywords])).sort();
+
             const baseMetrics = parseMetrics(baseText);
             const expMetrics = parseMetrics(expText);
             
@@ -256,8 +263,9 @@
             result += `${' '.repeat(20)}${' '.repeat(12)}AUC${' '.repeat(12)}UAUC${' '.repeat(12)}WUAUC${' '.repeat(8)}INS_NUM${' '.repeat(8)}LOSS${' '.repeat(10)}ACTUAL${' '.repeat(8)}PREDICT\n`;
             result += '-'.repeat(120) + '\n';
 
-            for (const key of Object.keys(baseMetrics).sort()) {
-                if (!expMetrics[key]) continue;
+            for (const key of keywords) {
+                // 如果某个指标在base或exp中缺失，跳过该指标
+                if (!baseMetrics[key] || !expMetrics[key]) continue;
 
                 const base = baseMetrics[key];
                 const exp = expMetrics[key];
