@@ -402,14 +402,16 @@
             // 从两个文本中提取所有的keywords
             const baseKeywords = extractKeywords(baseText);
             const expKeywords = extractKeywords(expText);
-            const keywords = Array.from(new Set([...baseKeywords, ...expKeywords])).sort();
+            // 按照字母顺序排序，不区分大小写
+            const keywords = Array.from(new Set([...baseKeywords, ...expKeywords]))
+                .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
 
             const baseMetrics = parseMetrics(baseText);
             const expMetrics = parseMetrics(expText);
             
             let result = '';
-            const header = `${' '.repeat(20)}${' '.repeat(12)}AUC${' '.repeat(12)}UAUC${' '.repeat(12)}WUAUC${' '.repeat(12)}INS_NUM${' '.repeat(8)}LOSS${' '.repeat(10)}ACTUAL${' '.repeat(8)}PREDICT\n`;
-            const separator = '-'.repeat(140) + '\n';
+            const header = `${''.padEnd(10)}AUC${' '.repeat(12)}UAUC${' '.repeat(12)}WUAUC${' '.repeat(12)}INS_NUM${' '.repeat(8)}LOSS${' '.repeat(10)}ACTUAL${' '.repeat(8)}PREDICT\n`;
+            const separator = '-'.repeat(120) + '\n';
             
             result += header;
             result += separator;
@@ -426,15 +428,11 @@
                     printLoss = 'ctr_' + key.slice(0, -4);
                 }
 
-                if (key === 'conv_p98' || key === 'conv_APP') {
-                    result += '\n';
-                }
-
                 const insNumDiff = base.insNum !== exp.insNum ? 'Y' : 'N';
                 const pcoc = (base.predCtr / base.actualCtr).toFixed(4) + '|' + 
                             (exp.predCtr / base.actualCtr).toFixed(4);
 
-                result += `${printLoss.padStart(31)}  AUC=${base.auc.toFixed(4)}|${exp.auc.toFixed(4)}(${diffPP(base.auc, exp.auc)}) ` +
+                result += `${printLoss.padEnd(10)}  AUC=${base.auc.toFixed(4)}|${exp.auc.toFixed(4)}(${diffPP(base.auc, exp.auc)}) ` +
                          `UAUC=${base.uauc.toFixed(4)}|${exp.uauc.toFixed(4)}(${diffPP(base.uauc, exp.uauc)}) ` +
                          `WUAUC=${base.wuauc.toFixed(4)}|${exp.wuauc.toFixed(4)}(${diffPP(base.wuauc, exp.wuauc)}) ` +
                          `INS=${base.insNum}|${exp.insNum}(${insNumDiff}) ` +
