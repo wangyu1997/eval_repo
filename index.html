@@ -97,19 +97,20 @@
             line-height: 1.5715;
             background-color: var(--editor-bg) !important;
             color: var(--text-primary) !important;
-            width: auto !important;
+            width: 100% !important;
         }
 
         .CodeMirror-scroll {
             overflow-x: auto !important;
             overflow-y: auto !important;
-            width: auto !important;
+            width: 100% !important;
         }
 
         .CodeMirror-sizer {
             margin-left: 45px !important;
             min-width: 0 !important;
             padding-right: 0 !important;
+            max-width: calc(100% - 45px) !important;
         }
 
         .CodeMirror-gutters {
@@ -128,8 +129,8 @@
         }
 
         .input-container {
-            overflow-x: auto;
             width: 100%;
+            overflow-x: auto;
         }
 
         /* 修改滚动条样式 */
@@ -162,12 +163,13 @@
         /* 确保内容区域可以水平延展 */
         .CodeMirror-lines {
             padding: 4px 0;
-            min-width: max-content;
+            width: 100%;
         }
 
         .CodeMirror pre.CodeMirror-line,
         .CodeMirror pre.CodeMirror-line-like {
             padding: 0 4px;
+            white-space: pre !important;
         }
 
         .theme-select {
