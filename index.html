@@ -229,6 +229,27 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-secondary);
         }
+
+        /* 添加复制按钮样式 */
+        .copy-button {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: var(--button-primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+
+        .copy-button:hover {
+            opacity: 0.9;
+        }
+
+        .copy-button:active {
+            opacity: 0.8;
+        }
     </style>
 </head>
 <body>
@@ -260,11 +281,13 @@
         <div class="results-section">
             <h2>比较结果</h2>
             <div id="result" class="result"></div>
+            <button onclick="copyResultToClipboard()" class="copy-button">复制结果截图</button>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/shell/shell.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         let isDarkTheme = false;
 
@@ -448,7 +471,41 @@
             }
 
             document.getElementById('result').innerHTML = result;
+            
+            // 显示复制按钮
+            document.querySelector('.copy-button').style.display = 'block';
         }
+
+        async function copyResultToClipboard() {
+            const resultElement = document.getElementById('result');
+            
+            try {
+                // 使用html2canvas将结果区域转换为canvas
+                const canvas = await html2canvas(resultElement, {
+                    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-bg'),
+                    scale: 2, // 提高截图质量
+                });
+                
+                // 将canvas转换为blob
+                canvas.toBlob(async (blob) => {
+                    try {
+                        // 创建ClipboardItem并写入剪贴板
+                        const item = new ClipboardItem({ "image/png": blob });
+                        await navigator.clipboard.write([item]);
+                        alert('结果截图已复制到剪贴板！');
+                    } catch (err) {
+                        console.error('复制到剪贴板失败:', err);
+                        alert('复制失败,请检查是否授予剪贴板权限');
+                    }
+                });
+            } catch (err) {
+                console.error('生成截图失败:', err);
+                alert('生成截图失败');
+            }
+        }
+
+        // 初始隐藏复制按钮
+        document.querySelector('.copy-button').style.display = 'none';
     </script>
 </body>
 </html> 
