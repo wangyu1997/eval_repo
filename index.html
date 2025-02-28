@@ -314,10 +314,10 @@
             
             // 初始化CodeMirror编辑器
             baseEditor = CodeMirror.fromTextArea(document.getElementById("base_text"), {
-                theme: isDarkTheme ? "dracula" : "default",
+                theme: isDarkTheme ? "dracula" : "monokai",
                 mode: "shell",
                 lineNumbers: true,
-                lineWrapping: true,
+                lineWrapping: false,
                 tabSize: 2,
                 viewportMargin: Infinity,
                 placeholder: "请输入基准文本...",
@@ -327,10 +327,10 @@
             });
 
             expEditor = CodeMirror.fromTextArea(document.getElementById("exp_text"), {
-                theme: isDarkTheme ? "dracula" : "default",
+                theme: isDarkTheme ? "dracula" : "monokai",
                 mode: "shell",
                 lineNumbers: true,
-                lineWrapping: true,
+                lineWrapping: false,
                 tabSize: 2,
                 viewportMargin: Infinity,
                 placeholder: "请输入实验文本...",
@@ -344,21 +344,26 @@
             expEditor.setSize("100%", "400px");
             baseEditor.refresh();
             expEditor.refresh();
+
+            // 设置默认选中的主题
+            document.querySelector('.theme-select').value = 'monokai';
         }
 
         function changeEditorTheme(theme) {
-            const isDark = theme === 'dracula';
-            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
             baseEditor.setOption('theme', theme);
             expEditor.setOption('theme', theme);
+            isDarkTheme = theme === 'dracula';
+            document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
         }
 
         function toggleTheme() {
             isDarkTheme = !isDarkTheme;
             document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
-            const theme = isDarkTheme ? 'dracula' : 'default';
+            const theme = isDarkTheme ? 'dracula' : 'monokai';
             baseEditor.setOption('theme', theme);
             expEditor.setOption('theme', theme);
+            // 同步更新选择框的值
+            document.querySelector('.theme-select').value = theme;
         }
 
         function clearAll() {
