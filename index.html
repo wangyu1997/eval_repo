@@ -375,7 +375,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/shell/shell.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
-        let isDarkTheme = true;
+        let isDarkTheme = false;
         let baseEditor, expEditor;
 
         // 将所有初始化逻辑放在一个函数中
@@ -416,7 +416,7 @@
             expEditor.refresh();
 
             // 设置默认选中的主题
-            document.querySelector('.theme-select').value = 'dracula';
+            document.querySelector('.theme-select').value = 'monokai';
         }
 
         function changeEditorTheme(theme) {
