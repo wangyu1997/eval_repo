@@ -112,6 +112,17 @@
             padding-right: 0 !important;
         }
 
+        .CodeMirror-gutters {
+            border-right: 1px solid var(--border-color) !important;
+            background-color: var(--gutter-bg) !important;
+            padding-right: 8px;
+            height: 100% !important;
+        }
+
+        .CodeMirror-linenumber {
+            color: var(--gutter-text) !important;
+        }
+
         .CodeMirror-hscrollbar {
             display: block !important;
         }
@@ -146,6 +157,17 @@
 
         [data-theme="dark"] .CodeMirror-hscrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 确保内容区域可以水平延展 */
+        .CodeMirror-lines {
+            padding: 4px 0;
+            min-width: max-content;
+        }
+
+        .CodeMirror pre.CodeMirror-line,
+        .CodeMirror pre.CodeMirror-line-like {
+            padding: 0 4px;
         }
 
         .theme-select {
