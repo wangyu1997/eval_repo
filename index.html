@@ -486,25 +486,43 @@
                     scale: 2, // 提高截图质量
                 });
 
-                // 将canvas转换为blob
-                canvas.toBlob(async (blob) => {
-                    if (navigator.clipboard && navigator.clipboard.write) {
-                        try {
-                            const data = [new ClipboardItem({
-                                'image/png': blob
-                            })];
-                            await navigator.clipboard.write(data);
-                            alert('结果截图已复制到剪贴板！');
-                        } catch (err) {
-                            console.error('复制到剪贴板失败:', err);
-                            // 降级到下载方案
-                            fallbackToDownload(canvas);
+                // 检查是否支持Clipboard API
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    try {
+                        // 先请求剪贴板权限
+                        const permissionResult = await navigator.permissions.query({ name: 'clipboard-write' });
+                        
+                        if (permissionResult.state === 'granted' || permissionResult.state === 'prompt') {
+                            // 确保页面获得焦点
+                            window.focus();
+                            
+                            // 将canvas转换为blob
+                            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                            const data = [new ClipboardItem({ 'image/png': blob })];
+                            
+                            try {
+                                await navigator.clipboard.write(data);
+                                alert('结果截图已复制到剪贴板！');
+                                return;
+                            } catch (writeErr) {
+                                console.error('写入剪贴板失败:', writeErr);
+                                if (writeErr.name === 'NotAllowedError') {
+                                    alert('需要剪贴板访问权限，将自动下载图片。\n提示：下次点击时请允许剪贴板访问。');
+                                }
+                            }
+                        } else {
+                            console.log('剪贴板权限被拒绝');
                         }
-                    } else {
-                        // 如果不支持Clipboard API，直接使用下载方案
-                        fallbackToDownload(canvas);
+                    } catch (permissionErr) {
+                        console.error('请求权限失败:', permissionErr);
                     }
-                }, 'image/png');
+                } else {
+                    console.log('浏览器不支持Clipboard API');
+                }
+
+                // 如果上述过程失败，降级到下载方案
+                fallbackToDownload(canvas);
+                
             } catch (err) {
                 console.error('生成截图失败:', err);
                 alert('生成截图失败');
@@ -519,7 +537,7 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                alert('无法直接复制到剪贴板，已自动下载截图');
+                alert('已自动下载截图到本地');
             } catch (err) {
                 console.error('下载失败:', err);
                 alert('保存截图失败');
