@@ -97,6 +97,7 @@
             line-height: 1.5715;
             background-color: var(--editor-bg) !important;
             color: var(--text-primary) !important;
+            position: relative;
             width: 100% !important;
         }
 
@@ -110,7 +111,6 @@
             margin-left: 45px !important;
             min-width: 0 !important;
             padding-right: 0 !important;
-            max-width: calc(100% - 45px) !important;
         }
 
         .CodeMirror-gutters {
@@ -130,7 +130,8 @@
 
         .input-container {
             width: 100%;
-            overflow-x: auto;
+            overflow: hidden;
+            position: relative;
         }
 
         /* 修改滚动条样式 */
@@ -163,7 +164,6 @@
         /* 确保内容区域可以水平延展 */
         .CodeMirror-lines {
             padding: 4px 0;
-            width: 100%;
         }
 
         .CodeMirror pre.CodeMirror-line,
@@ -246,6 +246,7 @@
             grid-template-columns: 1fr 1fr;
             gap: 24px;
             margin-bottom: 24px;
+            min-width: 0;
         }
 
         .input-section {
@@ -253,6 +254,9 @@
             padding: 24px;
             border-radius: 2px;
             box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
         }
 
         .label {
