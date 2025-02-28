@@ -485,19 +485,32 @@
                     backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-bg'),
                     scale: 2, // 提高截图质量
                 });
+
+                // 创建一个临时链接来下载图片
+                const dataUrl = canvas.toDataURL('image/png');
                 
-                // 将canvas转换为blob
-                canvas.toBlob(async (blob) => {
-                    try {
-                        // 创建ClipboardItem并写入剪贴板
-                        const item = new ClipboardItem({ "image/png": blob });
-                        await navigator.clipboard.write([item]);
-                        alert('结果截图已复制到剪贴板！');
-                    } catch (err) {
-                        console.error('复制到剪贴板失败:', err);
-                        alert('复制失败,请检查是否授予剪贴板权限');
-                    }
-                });
+                // 尝试直接复制到剪贴板
+                try {
+                    // 创建一个临时的textarea元素来复制图片URL
+                    const textarea = document.createElement('textarea');
+                    textarea.value = dataUrl;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    
+                    alert('结果截图已复制到剪贴板！');
+                } catch (clipboardErr) {
+                    console.error('复制到剪贴板失败:', clipboardErr);
+                    
+                    // 如果复制失败，提供下载选项
+                    const link = document.createElement('a');
+                    link.download = '比较结果.png';
+                    link.href = dataUrl;
+                    link.click();
+                    
+                    alert('无法直接复制到剪贴板，已自动下载截图');
+                }
             } catch (err) {
                 console.error('生成截图失败:', err);
                 alert('生成截图失败');
