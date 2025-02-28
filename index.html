@@ -290,26 +290,57 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         let isDarkTheme = false;
+        let baseEditor, expEditor;
 
         // 将所有初始化逻辑放在一个函数中
         function initializeApp() {
             console.log('Initializing app...');
             
+            // 初始化CodeMirror编辑器
+            baseEditor = CodeMirror.fromTextArea(document.getElementById("base_text"), {
+                theme: "solarized light",
+                mode: "shell",
+                lineNumbers: true,
+                lineWrapping: true,
+                tabSize: 2,
+                viewportMargin: Infinity,
+                placeholder: "请输入基准文本...",
+                readOnly: false,
+                inputStyle: "contenteditable",
+                autofocus: true
+            });
+
+            expEditor = CodeMirror.fromTextArea(document.getElementById("exp_text"), {
+                theme: "solarized light",
+                mode: "shell",
+                lineNumbers: true,
+                lineWrapping: true,
+                tabSize: 2,
+                viewportMargin: Infinity,
+                placeholder: "请输入实验文本...",
+                readOnly: false,
+                inputStyle: "contenteditable",
+                autofocus: false
+            });
+
+            // 设置编辑器大小
+            baseEditor.setSize("100%", "400px");
+            expEditor.setSize("100%", "400px");
+            baseEditor.refresh();
+            expEditor.refresh();
+
             // 初始化复制按钮
             const copyButton = document.getElementById('copyButton');
             if (copyButton) {
                 console.log('Found copy button, binding click event...');
-                copyButton.onclick = function() {
+                copyButton.addEventListener('click', function(e) {
                     console.log('Copy button clicked');
                     copyResultToClipboard();
-                };
+                });
                 copyButton.style.display = 'none';
             } else {
                 console.error('Copy button not found!');
             }
-
-            // 初始化编辑器
-            initializeEditors();
         }
 
         function toggleTheme() {
@@ -322,45 +353,11 @@
             expEditor.setOption('theme', theme);
         }
 
-        // 初始化CodeMirror编辑器
-        const baseEditor = CodeMirror.fromTextArea(document.getElementById("base_text"), {
-            theme: "solarized light",
-            mode: "shell",
-            lineNumbers: true,
-            lineWrapping: true,
-            tabSize: 2,
-            viewportMargin: Infinity,
-            placeholder: "请输入基准文本...",
-            readOnly: false,
-            inputStyle: "contenteditable",
-            autofocus: true
-        });
-
-        const expEditor = CodeMirror.fromTextArea(document.getElementById("exp_text"), {
-            theme: "solarized light",
-            mode: "shell",
-            lineNumbers: true,
-            lineWrapping: true,
-            tabSize: 2,
-            viewportMargin: Infinity,
-            placeholder: "请输入实验文本...",
-            readOnly: false,
-            inputStyle: "contenteditable",
-            autofocus: false
-        });
-
-        // 设置编辑器的大小并确保正确显示
-        function initializeEditors() {
-            baseEditor.setSize("100%", "400px");
-            expEditor.setSize("100%", "400px");
-            baseEditor.refresh();
-            expEditor.refresh();
-        }
-
         function clearAll() {
             baseEditor.setValue("");
             expEditor.setValue("");
             document.getElementById('result').innerHTML = '';
+            document.getElementById('copyButton').style.display = 'none';
         }
 
         // 正则表达式模式 - 更新以匹配stdout格式
@@ -564,12 +561,11 @@
             }
         }
 
-        // 确保在页面完全加载后再初始化
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeApp);
-        } else {
-            initializeApp();
-        }
+        // 等待所有资源加载完成后再初始化
+        window.addEventListener('load', function() {
+            console.log('Window loaded, initializing app...');
+            setTimeout(initializeApp, 100); // 给一个小延迟确保所有DOM都准备好
+        });
     </script>
 </body>
 </html> 
