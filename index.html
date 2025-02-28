@@ -4,6 +4,7 @@
     <title>指标比较工具</title>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/dracula.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/solarized.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -113,7 +114,6 @@
             background: var(--secondary-bg);
             border-radius: 8px;
             padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             transition: all 0.2s ease;
             width: 100%;
         }
@@ -126,7 +126,7 @@
         .CodeMirror {
             height: 400px;
             border-radius: 6px;
-            padding: 1rem;
+            padding: 0;
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
             font-size: 14px;
             line-height: 1.6;
@@ -135,12 +135,28 @@
         }
 
         .CodeMirror-gutters {
-            border-right: 1px solid var(--border-color);
-            background-color: var(--secondary-bg) !important;
+            border-right: 2px solid #3c3c3c !important;
+            background-color: #272822 !important;
+            padding-right: 8px;
         }
 
         .CodeMirror-linenumber {
-            color: var(--text-secondary) !important;
+            color: #75715e !important;
+        }
+
+        .theme-select {
+            padding: 0.5rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: var(--secondary-bg);
+            color: var(--text-primary);
+            margin-right: 1rem;
+            cursor: pointer;
+        }
+
+        .theme-select:focus {
+            outline: none;
+            border-color: var(--accent-color);
         }
 
         button {
@@ -257,6 +273,11 @@
         <div class="header">
             <h1>指标比较工具</h1>
             <div class="controls">
+                <select class="theme-select" onchange="changeEditorTheme(this.value)">
+                    <option value="monokai">Monokai</option>
+                    <option value="dracula">Dracula</option>
+                    <option value="solarized light">Solarized Light</option>
+                </select>
                 <button class="theme-toggle" onclick="toggleTheme()">切换主题</button>
                 <button onclick="compareMetrics()">比较</button>
                 <button class="clear-button" onclick="clearAll()">清空</button>
@@ -297,7 +318,7 @@
             
             // 初始化CodeMirror编辑器
             baseEditor = CodeMirror.fromTextArea(document.getElementById("base_text"), {
-                theme: "solarized light",
+                theme: "monokai",
                 mode: "shell",
                 lineNumbers: true,
                 lineWrapping: true,
@@ -310,7 +331,7 @@
             });
 
             expEditor = CodeMirror.fromTextArea(document.getElementById("exp_text"), {
-                theme: "solarized light",
+                theme: "monokai",
                 mode: "shell",
                 lineNumbers: true,
                 lineWrapping: true,
@@ -329,14 +350,14 @@
             expEditor.refresh();
         }
 
+        function changeEditorTheme(theme) {
+            baseEditor.setOption('theme', theme);
+            expEditor.setOption('theme', theme);
+        }
+
         function toggleTheme() {
             isDarkTheme = !isDarkTheme;
             document.documentElement.setAttribute('data-theme', isDarkTheme ? 'dark' : 'light');
-            
-            // 更新 CodeMirror 主题
-            const theme = isDarkTheme ? 'dracula' : 'solarized light';
-            baseEditor.setOption('theme', theme);
-            expEditor.setOption('theme', theme);
         }
 
         function clearAll() {
@@ -497,13 +518,10 @@
                                 
                                 try {
                                     await navigator.clipboard.write(data);
-                                    alert('结果已自动复制到剪贴板！');
                                     return;
                                 } catch (writeErr) {
                                     console.error('写入剪贴板失败:', writeErr);
-                                    if (writeErr.name === 'NotAllowedError') {
-                                        alert('需要剪贴板访问权限。\n提示：下次比较时请允许剪贴板访问。');
-                                    }
+                                    // 静默失败，直接进入下载流程
                                 }
                             }
                         } catch (permissionErr) {
@@ -516,7 +534,6 @@
                     
                 } catch (err) {
                     console.error('生成截图失败:', err);
-                    alert('生成截图失败');
                 }
             }, 100); // 给100ms让DOM完全渲染
         }
@@ -529,10 +546,8 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                alert('已自动下载截图到本地');
             } catch (err) {
                 console.error('下载失败:', err);
-                alert('保存截图失败');
             }
         }
 
