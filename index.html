@@ -97,21 +97,55 @@
             line-height: 1.5715;
             background-color: var(--editor-bg) !important;
             color: var(--text-primary) !important;
+            width: auto !important;
         }
 
-        .CodeMirror-gutters {
-            border-right: 1px solid var(--border-color) !important;
-            background-color: var(--gutter-bg) !important;
-            padding-right: 8px;
+        .CodeMirror-scroll {
+            overflow-x: auto !important;
+            overflow-y: auto !important;
+            width: auto !important;
         }
 
-        .CodeMirror-linenumber {
-            color: var(--gutter-text) !important;
+        .CodeMirror-sizer {
+            margin-left: 45px !important;
+            min-width: 0 !important;
+            padding-right: 0 !important;
         }
 
-        /* 隐藏水平滚动条 */
         .CodeMirror-hscrollbar {
-            display: none !important;
+            display: block !important;
+        }
+
+        .input-container {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        /* 修改滚动条样式 */
+        .CodeMirror-hscrollbar::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .CodeMirror-hscrollbar::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 3px;
+        }
+
+        .CodeMirror-hscrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 3px;
+        }
+
+        .CodeMirror-hscrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        [data-theme="dark"] .CodeMirror-hscrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        [data-theme="dark"] .CodeMirror-hscrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .theme-select {
