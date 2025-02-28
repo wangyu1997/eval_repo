@@ -281,7 +281,6 @@
         <div class="results-section">
             <h2>比较结果</h2>
             <div id="result" class="result"></div>
-            <button id="copyButton" class="copy-button">复制结果截图</button>
         </div>
     </div>
 
@@ -328,19 +327,6 @@
             expEditor.setSize("100%", "400px");
             baseEditor.refresh();
             expEditor.refresh();
-
-            // 初始化复制按钮
-            const copyButton = document.getElementById('copyButton');
-            if (copyButton) {
-                console.log('Found copy button, binding click event...');
-                copyButton.addEventListener('click', function(e) {
-                    console.log('Copy button clicked');
-                    copyResultToClipboard();
-                });
-                copyButton.style.display = 'none';
-            } else {
-                console.error('Copy button not found!');
-            }
         }
 
         function toggleTheme() {
@@ -357,7 +343,6 @@
             baseEditor.setValue("");
             expEditor.setValue("");
             document.getElementById('result').innerHTML = '';
-            document.getElementById('copyButton').style.display = 'none';
         }
 
         // 正则表达式模式 - 更新以匹配stdout格式
@@ -427,7 +412,7 @@
             return metrics;
         }
 
-        function compareMetrics() {
+        async function compareMetrics() {
             const baseText = baseEditor.getValue();
             const expText = expEditor.getValue();
 
@@ -486,64 +471,54 @@
 
             document.getElementById('result').innerHTML = result;
             
-            // 显示复制按钮
-            const copyButton = document.getElementById('copyButton');
-            if (copyButton) {
-                copyButton.style.display = 'block';
-            }
-        }
+            // 等待一小段时间确保结果渲染完成
+            setTimeout(async () => {
+                try {
+                    const resultElement = document.getElementById('result');
+                    // 使用html2canvas将结果区域转换为canvas
+                    const canvas = await html2canvas(resultElement, {
+                        backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-bg'),
+                        scale: 2, // 提高截图质量
+                    });
 
-        async function copyResultToClipboard() {
-            const resultElement = document.getElementById('result');
-            
-            try {
-                // 使用html2canvas将结果区域转换为canvas
-                const canvas = await html2canvas(resultElement, {
-                    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--primary-bg'),
-                    scale: 2, // 提高截图质量
-                });
-
-                // 检查是否支持Clipboard API
-                if (navigator.clipboard && navigator.clipboard.write) {
-                    try {
-                        // 先请求剪贴板权限
-                        const permissionResult = await navigator.permissions.query({ name: 'clipboard-write' });
-                        
-                        if (permissionResult.state === 'granted' || permissionResult.state === 'prompt') {
-                            // 确保页面获得焦点
-                            window.focus();
+                    // 检查是否支持Clipboard API
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        try {
+                            // 先请求剪贴板权限
+                            const permissionResult = await navigator.permissions.query({ name: 'clipboard-write' });
                             
-                            // 将canvas转换为blob
-                            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                            const data = [new ClipboardItem({ 'image/png': blob })];
-                            
-                            try {
-                                await navigator.clipboard.write(data);
-                                alert('结果截图已复制到剪贴板！');
-                                return;
-                            } catch (writeErr) {
-                                console.error('写入剪贴板失败:', writeErr);
-                                if (writeErr.name === 'NotAllowedError') {
-                                    alert('需要剪贴板访问权限，将自动下载图片。\n提示：下次点击时请允许剪贴板访问。');
+                            if (permissionResult.state === 'granted' || permissionResult.state === 'prompt') {
+                                // 确保页面获得焦点
+                                window.focus();
+                                
+                                // 将canvas转换为blob
+                                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                                const data = [new ClipboardItem({ 'image/png': blob })];
+                                
+                                try {
+                                    await navigator.clipboard.write(data);
+                                    alert('结果已自动复制到剪贴板！');
+                                    return;
+                                } catch (writeErr) {
+                                    console.error('写入剪贴板失败:', writeErr);
+                                    if (writeErr.name === 'NotAllowedError') {
+                                        alert('需要剪贴板访问权限。\n提示：下次比较时请允许剪贴板访问。');
+                                    }
                                 }
                             }
-                        } else {
-                            console.log('剪贴板权限被拒绝');
+                        } catch (permissionErr) {
+                            console.error('请求权限失败:', permissionErr);
                         }
-                    } catch (permissionErr) {
-                        console.error('请求权限失败:', permissionErr);
                     }
-                } else {
-                    console.log('浏览器不支持Clipboard API');
-                }
 
-                // 如果上述过程失败，降级到下载方案
-                fallbackToDownload(canvas);
-                
-            } catch (err) {
-                console.error('生成截图失败:', err);
-                alert('生成截图失败');
-            }
+                    // 如果上述过程失败，降级到下载方案
+                    fallbackToDownload(canvas);
+                    
+                } catch (err) {
+                    console.error('生成截图失败:', err);
+                    alert('生成截图失败');
+                }
+            }, 100); // 给100ms让DOM完全渲染
         }
 
         function fallbackToDownload(canvas) {
@@ -564,7 +539,7 @@
         // 等待所有资源加载完成后再初始化
         window.addEventListener('load', function() {
             console.log('Window loaded, initializing app...');
-            setTimeout(initializeApp, 100); // 给一个小延迟确保所有DOM都准备好
+            setTimeout(initializeApp, 100);
         });
     </script>
 </body>
