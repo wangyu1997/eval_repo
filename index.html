@@ -291,15 +291,26 @@
     <script>
         let isDarkTheme = false;
 
-        // 在页面加载完成后绑定事件
-        document.addEventListener('DOMContentLoaded', function() {
+        // 将所有初始化逻辑放在一个函数中
+        function initializeApp() {
+            console.log('Initializing app...');
+            
+            // 初始化复制按钮
             const copyButton = document.getElementById('copyButton');
             if (copyButton) {
-                copyButton.addEventListener('click', copyResultToClipboard);
-                // 初始隐藏复制按钮
+                console.log('Found copy button, binding click event...');
+                copyButton.onclick = function() {
+                    console.log('Copy button clicked');
+                    copyResultToClipboard();
+                };
                 copyButton.style.display = 'none';
+            } else {
+                console.error('Copy button not found!');
             }
-        });
+
+            // 初始化编辑器
+            initializeEditors();
+        }
 
         function toggleTheme() {
             isDarkTheme = !isDarkTheme;
@@ -345,10 +356,6 @@
             baseEditor.refresh();
             expEditor.refresh();
         }
-
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', initializeEditors);
-        setTimeout(initializeEditors, 100);
 
         function clearAll() {
             baseEditor.setValue("");
@@ -483,7 +490,10 @@
             document.getElementById('result').innerHTML = result;
             
             // 显示复制按钮
-            document.getElementById('copyButton').style.display = 'block';
+            const copyButton = document.getElementById('copyButton');
+            if (copyButton) {
+                copyButton.style.display = 'block';
+            }
         }
 
         async function copyResultToClipboard() {
@@ -552,6 +562,13 @@
                 console.error('下载失败:', err);
                 alert('保存截图失败');
             }
+        }
+
+        // 确保在页面完全加载后再初始化
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
         }
     </script>
 </body>
