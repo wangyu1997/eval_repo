@@ -7,3 +7,4 @@ dl.google.com-del
 cache.nixos.org
 copilot.microsoft.com
 hdhive.nextemby.com
+wiki.nextemby.com
