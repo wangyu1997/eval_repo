@@ -1,5 +1,4 @@
 quark.cn
-api.cloudflare.com
 189.cn
 115.com
 hdhive.tgtodrive.top
