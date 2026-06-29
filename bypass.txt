@@ -8,3 +8,4 @@ cache.nixos.org
 copilot.microsoft.com
 hdhive.nextemby.com
 wiki.nextemby.com
+wiki.viplee.cc
