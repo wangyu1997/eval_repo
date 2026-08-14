@@ -7,7 +7,7 @@ const NEW_YXMC =  "\\udbd9\\udc54\\udbe5\\udf08\\udbe4\\ude70\\udbe2\\udea7";
 if (body) {
   body = body.replace(/"xjzt":"[^"]*"/, '"xjzt":"' + NEW_XJZT + '"');
   body = body.replace(/"byrq":"[^"]*"/, '"byrq":"' + NEW_BYRQ + '"');
-  body = body.replace(/"yxmc":"[^"]*"/, '"yxmc":"' + NEW_BYRQ + '"');
+  body = body.replace(/"yxmc":"[^"]*"/, '"yxmc":"' + NEW_YXMC + '"');
 }
 
 $done({ body: body });
